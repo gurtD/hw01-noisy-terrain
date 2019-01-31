@@ -30,6 +30,9 @@ class ShaderProgram {
   unifViewProj: WebGLUniformLocation;
   unifColor: WebGLUniformLocation;
   unifPlanePos: WebGLUniformLocation;
+  unifTime: WebGLUniformLocation;
+  unifTerrainSeed: WebGLUniformLocation;
+  unifRoadSeed: WebGLUniformLocation
 
   constructor(shaders: Array<Shader>) {
     this.prog = gl.createProgram();
@@ -49,6 +52,9 @@ class ShaderProgram {
     this.unifModelInvTr = gl.getUniformLocation(this.prog, "u_ModelInvTr");
     this.unifViewProj   = gl.getUniformLocation(this.prog, "u_ViewProj");
     this.unifPlanePos   = gl.getUniformLocation(this.prog, "u_PlanePos");
+    this.unifTime = gl.getUniformLocation(this.prog, "u_Time");
+    this.unifTerrainSeed = gl.getUniformLocation(this.prog, "u_Terrain");
+    this.unifRoadSeed = gl.getUniformLocation(this.prog, "u_Road");
   }
 
   use() {
@@ -83,6 +89,30 @@ class ShaderProgram {
     this.use();
     if (this.unifPlanePos !== -1) {
       gl.uniform2fv(this.unifPlanePos, pos);
+    }
+  }
+
+  setTime(time: number) {
+    this.use();
+    if (this.unifTime !== -1) {
+      gl.uniform1f(this.unifTime, time);
+    }
+  }
+
+  setTerrain(terrain: number) {
+    console.log("setting terrain...");
+    this.use();
+    if (this.unifTerrainSeed !== -1) {
+      console.log(terrain);
+      console.log(this.unifTerrainSeed);
+      gl.uniform1f(this.unifTerrainSeed, terrain);
+    }
+  }
+
+  setRoad(road: number) {
+    this.use();
+    if (this.unifRoadSeed !== -1) {
+      gl.uniform1f(this.unifRoadSeed, road);
     }
   }
 

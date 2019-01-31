@@ -5,7 +5,6 @@ uniform mat4 u_Model;
 uniform mat4 u_ModelInvTr;
 uniform mat4 u_ViewProj;
 uniform vec2 u_PlanePos; // Our location in the virtual world displayed by the plane
-uniform float u_Terrain;
 
 in vec4 vs_Pos;
 in vec4 vs_Nor;
@@ -39,10 +38,10 @@ float interpNoise2D(float x, float y) {
     float intY = floor(y);
     float fractY = fract(y);
 
-    float v1 = random1(vec2(intX, intY), vec2(u_Terrain, u_Terrain));
-    float v2 = random1(vec2(intX + 1.0, intY), vec2(u_Terrain, u_Terrain));
-    float v3 = random1(vec2(intX, intY + 1.0), vec2(u_Terrain, u_Terrain));
-    float v4 = random1(vec2(intX + 1.0, intY + 1.0), vec2(u_Terrain, u_Terrain));
+    float v1 = random1(vec2(intX, intY), vec2(1.0, 1.0));
+    float v2 = random1(vec2(intX + 1.0, intY), vec2(1.0, 1.0));
+    float v3 = random1(vec2(intX, intY + 1.0), vec2(1.0, 1.0));
+    float v4 = random1(vec2(intX + 1.0, intY + 1.0), vec2(1.0, 1.0));
 
     float i1 = mix(v1, v2, fractX);
     float i2 = mix(v3, v4, fractX);
@@ -67,20 +66,14 @@ float fbm(float x, float y)
     return (total + 1.0f) / 2.0f;
 }
 
-vec3 palette( in float t, in vec3 a, in vec3 b, in vec3 c, in vec3 d )
-{
-    return a + b*cos( 6.28318*(c*t+d) );
-}
+
 
 
 void main()
 {
   fs_Pos = vs_Pos.xyz;
-  vec4 modelposition = vec4(fs_Pos, 1.0);
-  
   fs_Sine = fbm(((vs_Pos.x + u_PlanePos.x)  * 0.1), ((vs_Pos.z + u_PlanePos.y) * 0.1)) * 5.0;
-  
-  modelposition = vec4(vs_Pos.x, fs_Sine * 2.0, vs_Pos.z, 1.0);
+  vec4 modelposition = vec4(vs_Pos.x, 9.0, vs_Pos.z, 1.0);
   modelposition = u_Model * modelposition;
   gl_Position = u_ViewProj * modelposition;
 }

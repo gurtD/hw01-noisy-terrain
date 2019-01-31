@@ -17,23 +17,28 @@ const controls = {
 
 let square: Square;
 let plane : Plane;
+let water : Plane;
 let wPressed: boolean;
 let aPressed: boolean;
 let sPressed: boolean;
 let dPressed: boolean;
 let planePos: vec2;
+let time: number
 
 function loadScene() {
   square = new Square(vec3.fromValues(0, 0, 0));
   square.create();
   plane = new Plane(vec3.fromValues(0,0,0), vec2.fromValues(100,100), 20);
   plane.create();
+  water = new Plane(vec3.fromValues(0,0,0), vec2.fromValues(100,100), 20);
+  water.create();
 
   wPressed = false;
   aPressed = false;
   sPressed = false;
   dPressed = false;
   planePos = vec2.fromValues(0,0);
+  time = 0.0;
 }
 
 function main() {
@@ -80,8 +85,31 @@ function main() {
   stats.domElement.style.top = '0px';
   document.body.appendChild(stats.domElement);
 
+  class Parameters {
+    terrainSeed: number;
+    roadSeed: number;
+    constructor(tSeed: number, rSeed: number) {
+      this.terrainSeed = tSeed;
+      this.roadSeed = rSeed;
+    }
+  
+  }
+ 
+
+  let parameters = new Parameters(1.0, 0.1);
+
   // Add controls to the gui
   const gui = new DAT.GUI();
+  
+  gui.add(parameters, 'terrainSeed', 0.0, 1.0).onChange(function(val: number) {
+    parameters.terrainSeed = val;
+    lambert.setTerrain(val);
+    console.log(val);
+  }); // Min and max
+  gui.add(parameters, 'roadSeed', 0.1, 1).onChange(function(val: number) {
+    parameters.roadSeed = val;
+    lambert.setRoad(val);
+  }); // Min and max
 
   // get canvas and webgl context
   const canvas = <HTMLCanvasElement> document.getElementById('canvas');
@@ -112,6 +140,11 @@ function main() {
     new Shader(gl.FRAGMENT_SHADER, require('./shaders/flat-frag.glsl')),
   ]);
 
+  const waterShader = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require('./shaders/water-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/water-frag.glsl')),
+  ]);
+
   function processKeyPresses() {
     let velocity: vec2 = vec2.fromValues(0,0);
     if(wPressed) {
@@ -129,11 +162,16 @@ function main() {
     let newPos: vec2 = vec2.fromValues(0,0);
     vec2.add(newPos, velocity, planePos);
     lambert.setPlanePos(newPos);
+    
     planePos = newPos;
   }
 
   // This function will be called every frame
-  function tick() {
+  var tick = function() {
+    time += 0.1;
+    waterShader.setTime(time);
+    lambert.setTerrain(parameters.terrainSeed);
+    lambert.setRoad(parameters.roadSeed);
     camera.update();
     stats.begin();
     gl.viewport(0, 0, window.innerWidth, window.innerHeight);
@@ -145,6 +183,9 @@ function main() {
     renderer.render(camera, flat, [
       square,
     ]);
+    renderer.render(camera, waterShader, [
+      water,
+    ])
     stats.end();
 
     // Tell the browser to call `tick` again whenever it renders a new frame
